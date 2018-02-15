@@ -5,7 +5,7 @@
 #include <string.h>
 #include <sys/wait.h>
 
-int colorImage(int color, int quadtrant, int fd); //Prototype
+int colorImage(char color[], int quadtrant, int fd); //Prototype
 
 int main(int argc, char *argv[]) {
 
@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     int fd;
     int status;
 
-    int red =  110;
+    char red[] = {'0','F','0'} ;
     int green = 120;
     int blue = 130;
     int yellow = 140;
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 
     int numOfProcesses = 2;
 
-    char fileHeader[] = "P6\n1000 1000\n255\n";
+    char fileHeader[] = "P6\n1 1\n255\n";
 
     if(argc  != 7) {
         write(STDOUT_FILENO, invalidArgCount, sizeof(invalidArgCount));    
@@ -41,18 +41,18 @@ int main(int argc, char *argv[]) {
     if((fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0755)) == -1) write(STDOUT_FILENO, fileErr, sizeof(fileErr));
     else {
         //Write header to file
-        if((write(fd, fileHeader, sizeof(fileHeader))) == -1) {
+        if((write(fd, fileHeader, sizeof(fileHeader)-1)) == -1) {
             write(STDOUT_FILENO, fileWriteErr, sizeof(fileWriteErr));
             close(fd);
             exit(1);
         }
        
         int pid;
-        for(int i = 0; i < numOfProcesses; i++, pid = wait(&status)) {
-            if(fork() == 0) {
-                colorImage(green, 1, fd);
-            }
-        }
+        //for(int i = 0; i < numOfProcesses; i++, pid = wait(&status)) {
+        //    if(fork() == 0) {
+                colorImage(red, 1, fd);
+        //    }
+        //}
         close(fd);
     }
 
@@ -64,8 +64,10 @@ int main(int argc, char *argv[]) {
     params int color, int quadrant, file descriptor
     returns 1 on success, 0 on failure 
 */
-int colorImage(int color, int quadtrant, int fd) {
+int colorImage(char color[], int quadtrant, int fd) {
 
+    unsigned char red[] = {0,255,0};
+    write(fd, &red, 3);
     return 0;
 }
 
