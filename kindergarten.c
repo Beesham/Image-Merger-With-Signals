@@ -5,7 +5,7 @@
 #include <string.h>
 #include <sys/wait.h>
 
-int colorImage(char color[], int quadtrant, int fd); //Prototype
+int colorImage(unsigned char color[], int quadtrant, int fd); //Prototype
 
 int main(int argc, char *argv[]) {
 
@@ -14,8 +14,8 @@ int main(int argc, char *argv[]) {
     char fileWriteErr[] = "Error writing to file";
     int fd;
     int status;
-
-    char red[] = {'0','F','0'} ;
+       
+    unsigned char red[] = {255,0,0};
     int green = 120;
     int blue = 130;
     int yellow = 140;
@@ -28,9 +28,9 @@ int main(int argc, char *argv[]) {
     int width = 1000;
     int height = 1000;
 
-    int numOfProcesses = 2;
+    int numOfProcesses = 1;
 
-    char fileHeader[] = "P6\n1 1\n255\n";
+    char fileHeader[] = "P6\n1000 1000\n255\n";
 
     if(argc  != 7) {
         write(STDOUT_FILENO, invalidArgCount, sizeof(invalidArgCount));    
@@ -47,12 +47,9 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
        
-        int pid;
-        //for(int i = 0; i < numOfProcesses; i++, pid = wait(&status)) {
-        //    if(fork() == 0) {
-                colorImage(red, 1, fd);
-        //    }
-        //}
+        for(int i = 0; i < numOfProcesses; i++) {
+            colorImage(red, 1, fd);
+        }
         close(fd);
     }
 
@@ -64,10 +61,28 @@ int main(int argc, char *argv[]) {
     params int color, int quadrant, file descriptor
     returns 1 on success, 0 on failure 
 */
-int colorImage(char color[], int quadtrant, int fd) {
+int colorImage(unsigned char color[], int quadtrant, int fd) {
+    printf("in colorImage\n");
+    
+    if(fork() == 0) {
+        printf("%s", "in child\n");
+        unsigned char buff[3][1000] = {0};
+        for(int i = 0; i < 1000; i++) {
+            for(int j = 0; j < 3; j++) {
+                 buff[i][j] = color[j];           
+            }
+        }
+       
+        
+        // for(int i = 0; i < 250; i++) {
+        //if((write(fd, &buff, 3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            write(fd, "eee", 3);
+        // }
+    }else{
+        printf("%s", "in parent\n");
+    }
 
-    unsigned char red[] = {0,255,0};
-    write(fd, &red, 3);
+
     return 0;
 }
 
