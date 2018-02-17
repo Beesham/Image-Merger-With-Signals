@@ -16,14 +16,14 @@ int main(int argc, char *argv[]) {
     int status;
        
     unsigned char red[] = {255,0,0};
-    int green = 120;
-    int blue = 130;
-    int yellow = 140;
-    int orange = 150;
-    int cyan = 160;
-    int magenta = 170;
-    int ocean = 180;
-    int violet = 190;
+    unsigned char green[] ={0,255,0};
+    unsigned char blue[] = {0,0,255};
+    unsigned char yellow[] = {255,255,0};
+    unsigned char orange[] = {255,165,0};
+    unsigned char cyan[] = {0,255,255};
+    unsigned char magenta[] = {255,0,255};
+    unsigned char ocean[] = {30,144,255};
+    unsigned char violet[] = {238,130,238};
 
     int width = 1000;
     int height = 1000;
