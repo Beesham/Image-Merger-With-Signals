@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     int width = 1000;
     int height = 1000;
 
-    int numOfProcesses = 1;
+    int numOfProcesses = 10;
 
     char fileHeader[] = "P6\n1000 1000\n255\n";
 
@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
         for(int i = 0; i < numOfProcesses; i++) {
             colorImage(red, 1, fd);
         }
+        
         close(fd);
     }
 
@@ -63,23 +64,33 @@ int main(int argc, char *argv[]) {
 */
 int colorImage(unsigned char color[], int quadtrant, int fd) {
     printf("in colorImage\n");
-    
-    if(fork() == 0) {
-        printf("%s", "in child\n");
-        unsigned char buff[3][1000] = {0};
-        for(int i = 0; i < 1000; i++) {
-            for(int j = 0; j < 3; j++) {
-                 buff[i][j] = color[j];           
+    int row = 1000;
+    int column = 3;
+
+    int pid = fork();
+    if(pid == 0) {
+        unsigned char buff[1000][3] =  {{0}};
+        //Fills 1 rows of 1000px
+        for(int i = 0; i < row; i++) {
+               //  printf("%d \n", i);        
+            for(int j = 0; j < column; j++) {
+               //  printf("%d ", j);        
+                 buff[i][j] = color[j];   
+               //  printf("%u\n", buff[i][j]);        
             }
         }
-       
         
-        // for(int i = 0; i < 250; i++) {
-        //if((write(fd, &buff, 3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            write(fd, "eee", 3);
-        // }
+        //Writes 100 row of 1000px
+        for(int i = 0; i < 100; i++) { 
+            if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+        }
+            write(fd, "\n", 1);
+            exit(0);
     }else{
-        printf("%s", "in parent\n");
+        int status;
+        printf("CHild pid: %d",pid);
+        waitpid(pid,&status,0);
+        printf("%s: %d : %d", "in parent ", getpid(), status);
     }
 
 
