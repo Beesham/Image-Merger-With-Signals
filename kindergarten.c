@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 
 int colorImage(unsigned char color[], int quadtrant, int fd); //Prototype
+void fill2DArrayWithColor(int row, int column,  unsigned char array[][column],unsigned char color1[], unsigned char color2[]);
+void fill3DArrayWithColor(int row, int column, int z, unsigned char array[][column][z], unsigned char color1[], unsigned char color2[], unsigned char color3[]);
 
 int main(int argc, char *argv[]) {
 
@@ -27,6 +29,10 @@ int main(int argc, char *argv[]) {
 
     int width = 1000;
     int height = 1000;
+    int diamondNorth = height/4;
+    int diamondSouth = diamondNorth*3;
+    int diamondWest = width/4;
+    int diamondEast = diamondWest*3; 
 
     int numOfProcesses = 10;
 
@@ -67,19 +73,12 @@ int colorImage(unsigned char color[], int quadtrant, int fd) {
     int row = 1000;
     int column = 3;
 
+    unsigned char randomcolor[] = {255,255,50};
+
     int pid = fork();
     if(pid == 0) {
         unsigned char buff[1000][3] =  {{0}};
-        //Fills 1 rows of 1000px
-        for(int i = 0; i < row; i++) {
-               //  printf("%d \n", i);        
-            for(int j = 0; j < column; j++) {
-               //  printf("%d ", j);        
-                 buff[i][j] = color[j];   
-               //  printf("%u\n", buff[i][j]);        
-            }
-        }
-        
+        fill2DArrayWithColor(row, column, buff, color, randomcolor);  
         //Writes 100 row of 1000px
         for(int i = 0; i < 100; i++) { 
             if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
@@ -95,5 +94,18 @@ int colorImage(unsigned char color[], int quadtrant, int fd) {
 
 
     return 0;
+}
+
+void fill2DArrayWithColor(int row, int column,  unsigned char array[][column],unsigned char color1[], unsigned char color2[]) {
+    
+    //Fills 1 rows of 1000px
+    for(int i = 0; i < row; i++) {
+        for(int j = 0; j < column; j++) {
+            if(i < row/2) 
+                array[i][j] = color1[j];   
+            else
+                array[i][j] = color2[j];   
+        }
+    }
 }
 
