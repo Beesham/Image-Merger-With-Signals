@@ -76,7 +76,7 @@ int colorImage(unsigned char color[], int quadtrant, int fd, int procCount) {
     int row = 1000;
     int column = 3;
 
-    unsigned char randomcolor[] = {255,255,50};
+    unsigned char randomcolor[] = {255,55,50};
 
     int pid = fork();
     if(pid == 0) {
@@ -114,7 +114,7 @@ void fill2DArrayWithColor(int row, int column, unsigned char array[][column], in
             }else if (numOfColors == 3) {
                 if(i < row/3) 
                     array[i][j] = color1[j];   
-                else if (i > row/3 && i < row) 
+                else if (i > row/3 && i < (row/3)*2) 
                     array[i][j] = color2[j];   
                 else
                     array[i][j] = color3[j];   
