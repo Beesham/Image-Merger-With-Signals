@@ -81,11 +81,34 @@ int colorImage(unsigned char color[], int quadtrant, int fd, int procCount) {
     int pid = fork();
     if(pid == 0) {
         unsigned char buff[1000][3] =  {{0}};
-//        fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
-        fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
-        //Writes 100 row of 1000px
-        for(int i = 0; i < 100; i++) { 
-            if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+        
+        if(procCount < 2) {
+            fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
+            //Writes 100 row of 1000px
+            for(int i = 0; i < 100; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 2) {
+            fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
+            for(int i = 0; i < 50; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+
+            fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
+            for(int i = 0; i < 50; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount > 2 && procCount < 8) {
+            fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
+            for(int i = 0; i < 100; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else{
+            fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
+            //Writes 100 row of 1000px
+            for(int i = 0; i < 100; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
         }
         
         if (procCount == maxProc) write(fd, "\n", 1);
