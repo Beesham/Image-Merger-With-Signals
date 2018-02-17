@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 
 int colorImage(unsigned char color[], int quadtrant, int fd); //Prototype
-void fill2DArrayWithColor(int row, int column,  unsigned char array[][column],unsigned char color1[], unsigned char color2[]);
+void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], int numOfColors, unsigned char color1[], unsigned char color2[], unsigned char color3[]);
 void fill3DArrayWithColor(int row, int column, int z, unsigned char array[][column][z], unsigned char color1[], unsigned char color2[], unsigned char color3[]);
 
 int main(int argc, char *argv[]) {
@@ -78,7 +78,8 @@ int colorImage(unsigned char color[], int quadtrant, int fd) {
     int pid = fork();
     if(pid == 0) {
         unsigned char buff[1000][3] =  {{0}};
-        fill2DArrayWithColor(row, column, buff, color, randomcolor);  
+//        fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
+        fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
         //Writes 100 row of 1000px
         for(int i = 0; i < 100; i++) { 
             if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
@@ -96,15 +97,24 @@ int colorImage(unsigned char color[], int quadtrant, int fd) {
     return 0;
 }
 
-void fill2DArrayWithColor(int row, int column,  unsigned char array[][column],unsigned char color1[], unsigned char color2[]) {
+void fill2DArrayWithColor(int row, int column, unsigned char array[][column], int numOfColors, unsigned char color1[], unsigned char color2[], unsigned char color3[]) {
     
     //Fills 1 rows of 1000px
     for(int i = 0; i < row; i++) {
         for(int j = 0; j < column; j++) {
-            if(i < row/2) 
-                array[i][j] = color1[j];   
-            else
-                array[i][j] = color2[j];   
+            if (numOfColors == 2) {
+                if(i < row/2) 
+                    array[i][j] = color1[j];   
+                else
+                    array[i][j] = color2[j];   
+            }else if (numOfColors == 3) {
+                if(i < row/3) 
+                    array[i][j] = color1[j];   
+                else if (i > row/3 && i < row) 
+                    array[i][j] = color2[j];   
+                else
+                    array[i][j] = color3[j];   
+            }
         }
     }
 }
