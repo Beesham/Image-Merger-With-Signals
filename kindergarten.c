@@ -5,9 +5,11 @@
 #include <string.h>
 #include <sys/wait.h>
 
-int colorImage(unsigned char color[], int quadtrant, int fd); //Prototype
+int colorImage(unsigned char color[], int quadtrant, int fd, int procCount); //Prototype
 void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], int numOfColors, unsigned char color1[], unsigned char color2[], unsigned char color3[]);
 void fill3DArrayWithColor(int row, int column, int z, unsigned char array[][column][z], unsigned char color1[], unsigned char color2[], unsigned char color3[]);
+
+int maxProc;
 
 int main(int argc, char *argv[]) {
 
@@ -35,6 +37,7 @@ int main(int argc, char *argv[]) {
     int diamondEast = diamondWest*3; 
 
     int numOfProcesses = 10;
+    maxProc = numOfProcesses;
 
     char fileHeader[] = "P6\n1000 1000\n255\n";
 
@@ -54,7 +57,7 @@ int main(int argc, char *argv[]) {
         }
        
         for(int i = 0; i < numOfProcesses; i++) {
-            colorImage(red, 1, fd);
+            colorImage(red, 1, fd, i);
         }
         
         close(fd);
@@ -68,7 +71,7 @@ int main(int argc, char *argv[]) {
     params int color, int quadrant, file descriptor
     returns 1 on success, 0 on failure 
 */
-int colorImage(unsigned char color[], int quadtrant, int fd) {
+int colorImage(unsigned char color[], int quadtrant, int fd, int procCount) {
     printf("in colorImage\n");
     int row = 1000;
     int column = 3;
@@ -84,8 +87,9 @@ int colorImage(unsigned char color[], int quadtrant, int fd) {
         for(int i = 0; i < 100; i++) { 
             if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
         }
-            write(fd, "\n", 1);
-            exit(0);
+        
+        if (procCount == maxProc) write(fd, "\n", 1);
+        exit(0);
     }else{
         int status;
         printf("CHild pid: %d",pid);
