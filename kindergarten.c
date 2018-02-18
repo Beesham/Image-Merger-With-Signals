@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
         for(int i = 0; i < numOfProcesses; i++) {
             colorImage(red, 1, fd, i);
         }
-        
+        printf("%d", maxProc);        
         close(fd);
     }
 
@@ -98,20 +98,29 @@ int colorImage(unsigned char color[], int quadtrant, int fd, int procCount) {
             for(int i = 0; i < 50; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
-        }else if(procCount > 2 && procCount < 8) {
+        }else if(procCount > 2 && procCount < 7) { //5 procs
             fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
             for(int i = 0; i < 100; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+        }else if(procCount == 7) {
+            fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
+            for(int i = 0; i < 50; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+
+            fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
+            for(int i = 0; i < 50; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
         }else{
             fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
-            //Writes 100 row of 1000px
             for(int i = 0; i < 100; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }
         
-        if (procCount == maxProc) write(fd, "\n", 1);
+        if (procCount == maxProc-1) write(fd, "\n", 1);
         exit(0);
     }else{
         int status;
@@ -135,9 +144,9 @@ void fill2DArrayWithColor(int row, int column, unsigned char array[][column], in
                 else
                     array[i][j] = color2[j];   
             }else if (numOfColors == 3) {
-                if(i < row/3) 
+                if(i < 1000/4) 
                     array[i][j] = color1[j];   
-                else if (i > row/3 && i < (row/3)*2) 
+                else if (i > 1000/4 && i < (1000/4)*3) 
                     array[i][j] = color2[j];   
                 else
                     array[i][j] = color3[j];   
