@@ -108,14 +108,19 @@ int colorImage(unsigned char color[], int quadtrant, int fd, int procCount) {
                 fillArrayTriColor(row, column, buff, color, randomcolor, color, i+150);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
-        }else if(procCount > 4 && procCount < 7) { //2 procs
+        }else if(procCount == 5) { //2 procs
             for(int i = 0; i < 100; i++) { 
-                fillArrayTriColor(row, column, buff, color, randomcolor, color, i-(50*(procCount+2)));  
+                fillArrayTriColor(row, column, buff, color, randomcolor, color, 250-i);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 6) { //2 procs
+            for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, color, randomcolor, color, 150-i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 7) {
-            fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
             for(int i = 0; i < 50; i++) { 
+                fillArrayTriColor(row, column, buff, color, randomcolor, color, 50 - i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
 
@@ -123,6 +128,7 @@ int colorImage(unsigned char color[], int quadtrant, int fd, int procCount) {
             for(int i = 0; i < 50; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+            
         }else{
             fill2DArrayWithColor(row, column, buff, 2, color, randomcolor, NULL);  
             for(int i = 0; i < 100; i++) { 
