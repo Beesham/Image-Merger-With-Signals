@@ -227,7 +227,7 @@ int colorImage(int fd, int procCount) {
             }
         }else if(procCount == 6) { //2 procs
             for(int i = 0; i < 100; i++) { 
-                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomLeft, 150-i);  
+                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 150-i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 7) {
