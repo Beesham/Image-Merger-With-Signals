@@ -7,7 +7,7 @@
 
 int colorImage(unsigned char color[], int quadtrant, int fd, int procCount); //Prototype
 void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], int numOfColors, unsigned char color1[], unsigned char color2[], unsigned char color3[]);
-void fill3DArrayWithColor(int row, int column, int z, unsigned char array[][column][z], unsigned char color1[], unsigned char color2[], unsigned char color3[]);
+void fillArrayTriColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[], unsigned char color3[], int midColNum); 
 
 int maxProc;
 
@@ -94,13 +94,23 @@ int colorImage(unsigned char color[], int quadtrant, int fd, int procCount) {
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
 
-            fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
             for(int i = 0; i < 50; i++) { 
+                fillArrayTriColor(row, column, buff, color, randomcolor, color, i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
-        }else if(procCount > 2 && procCount < 7) { //5 procs
-            fill2DArrayWithColor(row, column, buff, 3, color, randomcolor, color);  
+        }else if(procCount == 3) { //procs
             for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, color, randomcolor, color, i+50);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 4) { //2 procs
+            for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, color, randomcolor, color, i+150);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount > 4 && procCount < 7) { //2 procs
+            for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, color, randomcolor, color, i-(50*(procCount+2)));  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 7) {
@@ -154,4 +164,28 @@ void fill2DArrayWithColor(int row, int column, unsigned char array[][column], in
         }
     }
 }
+
+void fillArrayTriColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[], unsigned char color3[], int midColNum) {
+     //Fills 1 rows of 1000px
+    for(int i = 0; i < row; i++) {
+        for(int j = 0; j < column; j++) {
+                if(i < (row/2) - midColNum) 
+                    array[i][j] = color1[j];   
+                else if(i > (row/2) - midColNum && i < (row/2) + midColNum) 
+                    array[i][j] = color2[j];
+                else
+                    array[i][j] = color3[j];
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
 
