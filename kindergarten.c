@@ -10,6 +10,127 @@ void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], i
 void fillArrayTriColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[], unsigned char color3[], int midColNum); 
 
 int maxProc;
+int sizeOfColorArray = 10;
+//const char *colorsKey[sizeOfColorArray] = {"red", "green", "blue", "yellow", "orange", "cyan", "magenta", "ocean", "violet"};
+
+typedef struct{
+    unsigned char center[3];
+    unsigned char topLeft[3];
+    unsigned char topRight[3];
+    unsigned char bottomLeft[3];
+    unsigned char bottomRight[3];
+} Quadrants;
+
+typedef const struct{
+    char *red; 
+    char *green;
+    char *blue;
+    char *yellow;
+    char *orange;
+    char *cyan;
+    char *magenta;
+    char *ocean;
+    char *violet;
+} ColorsKey;
+
+typedef const struct{
+    unsigned char red[3];
+    unsigned char green[3];
+    unsigned char blue[3];
+    unsigned char yellow[3];
+    unsigned char orange[3];
+    unsigned char cyan[3];
+    unsigned char magenta[3];
+    unsigned char ocean[3];
+    unsigned char violet[3];
+} ColorsValue;
+
+typedef struct{
+    char colorName[20];
+    unsigned char colorValue[3];
+} ColorKeyValue;
+
+ColorKeyValue colorKV[10]; 
+
+Quadrants quadtrant;
+ColorsKey colorsKey = {"red", "green", "blue", "yellow", "orange", "cyan", "magenta", "ocean", "violet"};
+ColorsValue colorsValue = {
+    {255,0,0},
+    {0,255,0},
+    {0,0,255},
+    {255,255,0},
+    {255,165,0},
+    {0,255,255},
+    {255,0,255},
+    {30,144,255},
+    {238,130,238}
+};
+
+void fillColorKeyValue() {
+    ColorKeyValue red;
+    strcpy(red.colorName, colorsKey.red);
+    memcpy(red.colorValue, colorsValue.red, 3);
+
+    ColorKeyValue green;
+    strcpy(green.colorName, colorsKey.green);
+    memcpy(green.colorValue, colorsValue.green, 3);
+
+    ColorKeyValue blue;
+    strcpy(blue.colorName, colorsKey.blue);
+    memcpy(blue.colorValue, colorsValue.blue, 3);
+
+    ColorKeyValue yellow;
+    strcpy(yellow.colorName, colorsKey.yellow);
+    memcpy(yellow.colorValue, colorsValue.yellow, 3);
+
+    ColorKeyValue orange; 
+    strcpy(orange.colorName, colorsKey.orange);
+    memcpy(orange.colorValue, colorsValue.orange, 3);
+
+    ColorKeyValue cyan;
+    strcpy(cyan.colorName, colorsKey.cyan);
+    memcpy(cyan.colorValue, colorsValue.cyan, 3);
+
+    ColorKeyValue magenta;
+    strcpy(magenta.colorName, colorsKey.magenta);
+    memcpy(magenta.colorValue, colorsValue.magenta, 3);
+
+    ColorKeyValue ocean;
+    strcpy(ocean.colorName, colorsKey.ocean);
+    memcpy(ocean.colorValue, colorsValue.violet, 3);
+
+    ColorKeyValue violet;
+    strcpy(violet.colorName, colorsKey.violet);
+    memcpy(violet.colorValue, colorsValue.violet, 3);
+
+    colorKV[0] = red;
+    colorKV[2] = green;
+    colorKV[3] = blue;
+    colorKV[4] = yellow;
+    colorKV[5] = orange;
+    colorKV[6] = cyan;
+    colorKV[7] = magenta;
+    colorKV[8] = ocean;
+    colorKV[9] = violet;
+    //colorKV[] = {red, green, blue, yellow, orange, cyan, magenta, ocean, violet};
+}
+
+void assignColorsToQuadrant(int argc, char *argv[]) {
+    for(int j = 0; j < sizeOfColorArray; j++) {
+        if(strcmp(colorKV[j].colorName, argv[2])) {
+            memcpy(quadtrant.center, colorKV->colorValue, 3); 
+        }else if(strcmp(colorKV[j].colorName, argv[3])) {
+            memcpy(quadtrant.center, colorKV->colorValue, 3); 
+        }else if(strcmp(colorKV[j].colorName, argv[4])) {
+            memcpy(quadtrant.center, colorKV->colorValue, 3); 
+        }else if(strcmp(colorKV[j].colorName, argv[5])) {
+            memcpy(quadtrant.center, colorKV->colorValue, 3); 
+        }else if(strcmp(colorKV[j].colorName, argv[6])) {
+            memcpy(quadtrant.center, colorKV->colorValue, 3); 
+        }
+    }
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -19,16 +140,6 @@ int main(int argc, char *argv[]) {
     int fd;
     int status;
        
-    unsigned char red[] = {255,0,0};
-    unsigned char green[] ={0,255,0};
-    unsigned char blue[] = {0,0,255};
-    unsigned char yellow[] = {255,255,0};
-    unsigned char orange[] = {255,165,0};
-    unsigned char cyan[] = {0,255,255};
-    unsigned char magenta[] = {255,0,255};
-    unsigned char ocean[] = {30,144,255};
-    unsigned char violet[] = {238,130,238};
-
     int width = 1000;
     int height = 1000;
     int diamondNorth = height/4;
@@ -46,6 +157,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
+
     //Create the file
     if((fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0755)) == -1) write(STDOUT_FILENO, fileErr, sizeof(fileErr));
     else {
@@ -57,7 +169,7 @@ int main(int argc, char *argv[]) {
         }
        
         for(int i = 0; i < numOfProcesses; i++) {
-            colorImage(red, 1, fd, i);
+  //          colorImage(red, 1, fd, i);
         }
         printf("%d", maxProc);        
         close(fd);
