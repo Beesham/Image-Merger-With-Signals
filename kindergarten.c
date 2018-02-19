@@ -1,3 +1,11 @@
+/*
+ * Beesham Sarendranaauth, 104854956
+ * 2018/02/18
+ * Assigment 2: Color an image.ppm with 5 colors using seperate processes in sequence
+ * 
+ * 
+*/
+
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
