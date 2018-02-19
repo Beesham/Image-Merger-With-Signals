@@ -96,14 +96,6 @@ int main(int argc, char *argv[]) {
     char fileWriteErr[] = "Error writing to file";
     char unsupCol[] = "Unsupported color";
     int fd;
-    int status;
-       
-    int width = 1000;
-    int height = 1000;
-    int diamondNorth = height/4;
-    int diamondSouth = diamondNorth*3;
-    int diamondWest = width/4;
-    int diamondEast = diamondWest*3; 
 
     int numOfProcesses = 10;
     maxProc = numOfProcesses;
@@ -147,7 +139,6 @@ int main(int argc, char *argv[]) {
     Writes to a file 4 colors in specific orientation. Paints a specific quadrant a specific color 
 */
 void colorImage(int fd, int procCount) {
-    printf("in colorImage\n");
     int row = 1000;
     int column = 3;
 
@@ -215,9 +206,7 @@ void colorImage(int fd, int procCount) {
         exit(0);
     }else{
         int status;
-        printf("Child pid: %d ",pid);
         waitpid(pid,&status,0);
-        printf("%s: %d : %d", "Parent pid:", getpid(), status);
     }
 }
 
