@@ -5,13 +5,25 @@
 #include <string.h>
 #include <sys/wait.h>
 
-int colorImage(int fd, int procCount); //Prototype
-void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], int numOfColors, unsigned char color1[], unsigned char color2[], unsigned char color3[]);
+//Prototypes
+
+//Colors the image
+void colorImage(int fd, int procCount); 
+
+//Fills a 2D array with 2 colors
+void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], unsigned char color1[], unsigned char color2[]);
+
+//Fills a 2D array  with 3 colors
 void fillArrayTriColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[], unsigned char color3[], int midColNum); 
 
-int maxProc;
-int sizeOfColorArray = 9;
-//const char *colorsKey[sizeOfColorArray] = {"red", "green", "blue", "yellow", "orange", "cyan", "magenta", "ocean", "violet"};
+//Setup an array of key-value pairs of possible colors
+void fillColorKeyValue();  
+
+//Assigns the colors chosen to their respective quadrant on the image
+void assignColorsToQuadrant(int argc, char *argv[]); 
+
+int maxProc;    //maximum number of processes to use
+int sizeOfColorArray = 9;   
 
 typedef struct{
     unsigned char center[3];
@@ -66,6 +78,161 @@ ColorsValue colorsValue = {
     {238,130,238}
 };
 
+int main(int argc, char *argv[]) {
+
+    char invalidArgCount[] = "Invalid amount of arguments";
+    char fileErr[] = "Error creating file";
+    char fileWriteErr[] = "Error writing to file";
+    int fd;
+    int status;
+       
+    int width = 1000;
+    int height = 1000;
+    int diamondNorth = height/4;
+    int diamondSouth = diamondNorth*3;
+    int diamondWest = width/4;
+    int diamondEast = diamondWest*3; 
+
+    int numOfProcesses = 10;
+    maxProc = numOfProcesses;
+
+    char fileHeader[] = "P6\n1000 1000\n255\n";
+    fillColorKeyValue();
+
+    if(argc  != 7) {
+        write(STDOUT_FILENO, invalidArgCount, sizeof(invalidArgCount));    
+        exit(0);
+    }
+
+    assignColorsToQuadrant(argc, argv);
+
+    //Create the file
+    if((fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0755)) == -1) write(STDOUT_FILENO, fileErr, sizeof(fileErr));
+    else {
+        //Write header to file
+        if((write(fd, fileHeader, sizeof(fileHeader)-1)) == -1) {
+            write(STDOUT_FILENO, fileWriteErr, sizeof(fileWriteErr));
+            close(fd);
+            exit(1);
+        }
+      
+        //Colors the image  
+        for(int i = 0; i < numOfProcesses; i++) {
+            colorImage(fd, i);
+        }
+        close(fd);
+    }
+
+
+}
+
+/*
+    Writes to a file 4 colors in specific orientation. Paints a specific quadrant a specific color 
+*/
+void colorImage(int fd, int procCount) {
+    printf("in colorImage\n");
+    int row = 1000;
+    int column = 3;
+
+    int pid = fork();
+    if(pid == 0) {
+        unsigned char buff[1000][3] =  {{0}};
+        
+        //Writes a number of rows with specific color arrangement based on the process count
+        if(procCount < 2) {
+            //Fill the array with colors to write to file
+            fill2DArrayWithColor(row, column, buff, quadrant.topLeft, quadrant.topRight);  
+            //Writes 100 row of 1000px
+            for(int i = 0; i < 100; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 2) {
+            fill2DArrayWithColor(row, column, buff, quadrant.topLeft, quadrant.topRight);  
+            for(int i = 0; i < 50; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+
+            for(int i = 0; i < 50; i++) { 
+                fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 3) { 
+            for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+50);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 4) { 
+            for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+150);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 5) { 
+            for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 250-i);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 6) { 
+            for(int i = 0; i < 100; i++) { 
+                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 150-i);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }else if(procCount == 7) {
+            for(int i = 0; i < 50; i++) { 
+                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 50 - i);  
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+
+            fill2DArrayWithColor(row, column, buff, quadrant.bottomLeft, quadrant.bottomRight);  
+            for(int i = 0; i < 50; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+            
+        }else{
+            fill2DArrayWithColor(row, column, buff, quadrant.bottomLeft, quadrant.bottomRight);  
+            for(int i = 0; i < 100; i++) { 
+                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
+            }
+        }
+        
+        if (procCount == maxProc-1) write(fd, "\n", 1);
+        exit(0);
+    }else{
+        int status;
+        printf("Child pid: %d ",pid);
+        waitpid(pid,&status,0);
+        printf("%s: %d : %d", "Parent pid:", getpid(), status);
+    }
+}
+
+void fill2DArrayWithColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[]) {
+    
+    //Fills n rows of 1000px
+    for(int i = 0; i < row; i++) {
+        for(int j = 0; j < column; j++) {
+            if(i < row/2) 
+                array[i][j] = color1[j];   
+            else
+                array[i][j] = color2[j];   
+        }
+    }
+}
+
+void fillArrayTriColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[], unsigned char color3[], int midColNum) {
+     //Fills 1 rows of 1000px
+    for(int i = 0; i < row; i++) {
+        for(int j = 0; j < column; j++) {
+                if(i < (row/2) - midColNum) 
+                    array[i][j] = color1[j];   
+                else if(i > (row/2) - midColNum && i < (row/2) + midColNum) 
+                    array[i][j] = color2[j];
+                else
+                    array[i][j] = color3[j];
+        }
+    }
+
+}
+
+
 void fillColorKeyValue() {
     ColorKeyValue red;
     strcpy(red.colorName, colorsKey.red);
@@ -112,7 +279,6 @@ void fillColorKeyValue() {
     colorKV[6] = magenta;
     colorKV[7] = ocean;
     colorKV[8] = violet;
-    //colorKV[] = {red, green, blue, yellow, orange, cyan, magenta, ocean, violet};
 }
 
 void assignColorsToQuadrant(int argc, char *argv[]) {
@@ -129,173 +295,6 @@ void assignColorsToQuadrant(int argc, char *argv[]) {
             memcpy(quadrant.bottomRight, colorKV[j].colorValue, 3); 
         }
     }
-}
-
-
-int main(int argc, char *argv[]) {
-
-    char invalidArgCount[] = "Invalid amount of arguments";
-    char fileErr[] = "Error creating file";
-    char fileWriteErr[] = "Error writing to file";
-    int fd;
-    int status;
-       
-    int width = 1000;
-    int height = 1000;
-    int diamondNorth = height/4;
-    int diamondSouth = diamondNorth*3;
-    int diamondWest = width/4;
-    int diamondEast = diamondWest*3; 
-
-    int numOfProcesses = 10;
-    maxProc = numOfProcesses;
-
-    char fileHeader[] = "P6\n1000 1000\n255\n";
-    fillColorKeyValue();
-
-    if(argc  != 7) {
-        write(STDOUT_FILENO, invalidArgCount, sizeof(invalidArgCount));    
-        exit(0);
-    }
-
-    assignColorsToQuadrant(argc, argv);
-
-    //Create the file
-    if((fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0755)) == -1) write(STDOUT_FILENO, fileErr, sizeof(fileErr));
-    else {
-        //Write header to file
-        if((write(fd, fileHeader, sizeof(fileHeader)-1)) == -1) {
-            write(STDOUT_FILENO, fileWriteErr, sizeof(fileWriteErr));
-            close(fd);
-            exit(1);
-        }
-       
-        for(int i = 0; i < numOfProcesses; i++) {
-            colorImage(fd, i);
-        }
-        printf("%d", maxProc);        
-        close(fd);
-    }
-
-
-}
-
-/*
-    Writes to a file the color. Paints a specific quadrant a specific color
-    params int color, int quadrant, file descriptor
-    returns 1 on success, 0 on failure 
-*/
-int colorImage(int fd, int procCount) {
-    printf("in colorImage\n");
-    int row = 1000;
-    int column = 3;
-
-    int pid = fork();
-    if(pid == 0) {
-        unsigned char buff[1000][3] =  {{0}};
-        
-        if(procCount < 2) {
-            fill2DArrayWithColor(row, column, buff, 2, quadrant.topLeft, quadrant.topRight, NULL);  
-            //Writes 100 row of 1000px
-            for(int i = 0; i < 100; i++) { 
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-        }else if(procCount == 2) {
-            fill2DArrayWithColor(row, column, buff, 2, quadrant.topLeft, quadrant.topRight, NULL);  
-            for(int i = 0; i < 50; i++) { 
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-
-            for(int i = 0; i < 50; i++) { 
-                fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i);  
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-        }else if(procCount == 3) { //procs
-            for(int i = 0; i < 100; i++) { 
-                fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+50);  
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-        }else if(procCount == 4) { //2 procs
-            for(int i = 0; i < 100; i++) { 
-                fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+150);  
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-        }else if(procCount == 5) { //2 procs
-            for(int i = 0; i < 100; i++) { 
-                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 250-i);  
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-        }else if(procCount == 6) { //2 procs
-            for(int i = 0; i < 100; i++) { 
-                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 150-i);  
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-        }else if(procCount == 7) {
-            for(int i = 0; i < 50; i++) { 
-                fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 50 - i);  
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-
-            fill2DArrayWithColor(row, column, buff, 2, quadrant.bottomLeft, quadrant.bottomRight, NULL);  
-            for(int i = 0; i < 50; i++) { 
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-            
-        }else{
-            fill2DArrayWithColor(row, column, buff, 2, quadrant.bottomLeft, quadrant.bottomRight, NULL);  
-            for(int i = 0; i < 100; i++) { 
-                if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
-            }
-        }
-        
-        if (procCount == maxProc-1) write(fd, "\n", 1);
-        exit(0);
-    }else{
-        int status;
-        printf("CHild pid: %d",pid);
-        waitpid(pid,&status,0);
-        printf("%s: %d : %d", "in parent ", getpid(), status);
-    }
-
-
-    return 0;
-}
-
-void fill2DArrayWithColor(int row, int column, unsigned char array[][column], int numOfColors, unsigned char color1[], unsigned char color2[], unsigned char color3[]) {
-    
-    //Fills 1 rows of 1000px
-    for(int i = 0; i < row; i++) {
-        for(int j = 0; j < column; j++) {
-            if (numOfColors == 2) {
-                if(i < row/2) 
-                    array[i][j] = color1[j];   
-                else
-                    array[i][j] = color2[j];   
-            }else if (numOfColors == 3) {
-                if(i < 1000/4) 
-                    array[i][j] = color1[j];   
-                else if (i > 1000/4 && i < (1000/4)*3) 
-                    array[i][j] = color2[j];   
-                else
-                    array[i][j] = color3[j];   
-            }
-        }
-    }
-}
-
-void fillArrayTriColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[], unsigned char color3[], int midColNum) {
-     //Fills 1 rows of 1000px
-    for(int i = 0; i < row; i++) {
-        for(int j = 0; j < column; j++) {
-                if(i < (row/2) - midColNum) 
-                    array[i][j] = color1[j];   
-                else if(i > (row/2) - midColNum && i < (row/2) + midColNum) 
-                    array[i][j] = color2[j];
-                else
-                    array[i][j] = color3[j];
-        }
-    }
-
 }
 
 
