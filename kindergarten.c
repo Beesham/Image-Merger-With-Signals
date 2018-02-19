@@ -22,6 +22,9 @@ void fillColorKeyValue();
 //Assigns the colors chosen to their respective quadrant on the image
 void assignColorsToQuadrant(int argc, char *argv[]); 
 
+//Validates colors
+int validateColors();
+
 int maxProc;    //maximum number of processes to use
 int sizeOfColorArray = 9;   
 
@@ -83,6 +86,7 @@ int main(int argc, char *argv[]) {
     char invalidArgCount[] = "Invalid amount of arguments";
     char fileErr[] = "Error creating file";
     char fileWriteErr[] = "Error writing to file";
+    char unsupCol[] = "Unsupported color";
     int fd;
     int status;
        
@@ -105,6 +109,12 @@ int main(int argc, char *argv[]) {
     }
 
     assignColorsToQuadrant(argc, argv);
+
+    if(!validateColors(argc, argv)) {
+        write(STDOUT_FILENO, unsupCol, sizeof(unsupCol));
+        exit(0);
+    }
+
 
     //Create the file
     if((fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0755)) == -1) write(STDOUT_FILENO, fileErr, sizeof(fileErr));
@@ -293,11 +303,22 @@ void assignColorsToQuadrant(int argc, char *argv[]) {
             memcpy(quadrant.bottomLeft, colorKV[j].colorValue, 3); 
         }else if(strcmp(colorKV[j].colorName, argv[6]) == 0) {
             memcpy(quadrant.bottomRight, colorKV[j].colorValue, 3); 
-        }
+        }    
     }
 }
 
-
+int validateColors(int argc, char *argv[]) {
+    for(int i = 2; i < 7; i++) { 
+        for(int j = 0; j < sizeOfColorArray; j++) {
+            if((strcmp(colorKV[j].colorName, argv[i])) == 0) {
+                j = sizeOfColorArray;
+            }else if((strcmp(colorKV[j].colorName, argv[i])) != 0 && j == sizeOfColorArray-1) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
 
 
 
