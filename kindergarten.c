@@ -108,13 +108,12 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    assignColorsToQuadrant(argc, argv);
-
     if(!validateColors(argc, argv)) {
         write(STDOUT_FILENO, unsupCol, sizeof(unsupCol));
         exit(0);
     }
 
+    assignColorsToQuadrant(argc, argv);
 
     //Create the file
     if((fd = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0755)) == -1) write(STDOUT_FILENO, fileErr, sizeof(fileErr));
@@ -295,13 +294,17 @@ void assignColorsToQuadrant(int argc, char *argv[]) {
     for(int j = 0; j < sizeOfColorArray; j++) {
         if((strcmp(colorKV[j].colorName, argv[2])) == 0) {
             memcpy(quadrant.center, colorKV[j].colorValue, 3); 
-        }else if(strcmp(colorKV[j].colorName, argv[3]) == 0) {
+        }
+        if(strcmp(colorKV[j].colorName, argv[3]) == 0) {
             memcpy(quadrant.topLeft, colorKV[j].colorValue, 3); 
-        }else if(strcmp(colorKV[j].colorName, argv[4]) == 0) {
+        }
+        if(strcmp(colorKV[j].colorName, argv[4]) == 0) {
             memcpy(quadrant.topRight, colorKV[j].colorValue, 3); 
-        }else if(strcmp(colorKV[j].colorName, argv[5]) == 0) {
+        }
+        if(strcmp(colorKV[j].colorName, argv[5]) == 0) {
             memcpy(quadrant.bottomLeft, colorKV[j].colorValue, 3); 
-        }else if(strcmp(colorKV[j].colorName, argv[6]) == 0) {
+        }
+        if(strcmp(colorKV[j].colorName, argv[6]) == 0) {
             memcpy(quadrant.bottomRight, colorKV[j].colorValue, 3); 
         }    
     }
