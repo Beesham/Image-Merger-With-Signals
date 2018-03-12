@@ -1,7 +1,7 @@
 /*
  * Beesham Sarendranaauth, 104854956
  * 2018/02/18
- * Assigment 2: Color an image.ppm with 5 colors using seperate processes in sequence
+ * Assigment 2: Color an image.ppm with 5 colors using seperate processes in sequence and signals IPC
  * 
  * 
 */
@@ -12,11 +12,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 //Prototypes
 
 //Colors the image
-void colorImage(int fd, int procCount); 
+int colorImage(int fd, int procCount); 
 
 //Fills a 2D array with 2 colors
 void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], unsigned char color1[], unsigned char color2[]);
@@ -33,6 +34,13 @@ void assignColorsToQuadrant(int argc, char *argv[]);
 //Validates colors
 int validateColors();
 
+//Signal Handler for child processes
+void signalHandlerChild(int signo);
+
+//Signal handler for parent proecess
+void signalHandlerParent(int signo);
+
+#define numOfProcesses  10
 int maxProc;    //maximum number of processes to use
 int sizeOfColorArray = 9;   
 
@@ -89,6 +97,12 @@ ColorsValue colorsValue = {
     {238,130,238}
 };
 
+//Child process checks this flags for 'go ahead' to write to file
+int FLAG_WRITE_PERM = 0;
+
+//List of child pids the parent keeps as a queue
+int childPids[numOfProcesses];
+
 int main(int argc, char *argv[]) {
 
     char invalidArgCount[] = "Invalid amount of arguments";
@@ -97,7 +111,6 @@ int main(int argc, char *argv[]) {
     char unsupCol[] = "Unsupported color";
     int fd;
 
-    int numOfProcesses = 10;
     maxProc = numOfProcesses;
 
     char fileHeader[] = "P6\n1000 1000\n255\n";
@@ -125,9 +138,12 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
       
+        
+        signal(SIGUSR2, signalHandlerParent);
         //Colors the image  
         for(int i = 0; i < numOfProcesses; i++) {
-            colorImage(fd, i);
+            childPids[i] = colorImage(fd, i);
+            printf("Child pid: %d\n", childPids[i]);
         }
         close(fd);
     }
@@ -136,9 +152,31 @@ int main(int argc, char *argv[]) {
 }
 
 /*
+    Handles the signals for the IPC 
+*/
+void signalHandlerChild(int signo) {
+
+}
+
+/*
+    Habdles the sidnals for parent proc
+*/
+void signalHandlerParent(int signo) {
+    if(signo == childPids[0]) {
+        int pid = childPids[0];
+        kill(pid, SIGUSR1);
+
+        int sizeOfArr = sizeof(childPids) / sizeof(int);
+        for(int i = 0; i < sizeOfArr; i++) {
+            childPids[i] = childPids[i+1];   
+        }
+    }
+}
+
+/*
     Writes to a file 4 colors in specific orientation. Paints a specific quadrant a specific color 
 */
-void colorImage(int fd, int procCount) {
+int colorImage(int fd, int procCount) {
     int row = 1000;
     int column = 3;
 
@@ -150,12 +188,16 @@ void colorImage(int fd, int procCount) {
         if(procCount < 2) {
             //Fill the array with colors to write to file
             fill2DArrayWithColor(row, column, buff, quadrant.topLeft, quadrant.topRight);  
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             //Writes 100 row of 1000px
             for(int i = 0; i < 100; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 2) {
             fill2DArrayWithColor(row, column, buff, quadrant.topLeft, quadrant.topRight);  
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             for(int i = 0; i < 50; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
@@ -165,31 +207,41 @@ void colorImage(int fd, int procCount) {
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 3) { 
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+50);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 4) { 
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+150);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 5) { 
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 250-i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 6) { 
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 150-i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
         }else if(procCount == 7) {
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             for(int i = 0; i < 50; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 50 - i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
-
+   
             fill2DArrayWithColor(row, column, buff, quadrant.bottomLeft, quadrant.bottomRight);  
             for(int i = 0; i < 50; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
@@ -197,6 +249,8 @@ void colorImage(int fd, int procCount) {
             
         }else{
             fill2DArrayWithColor(row, column, buff, quadrant.bottomLeft, quadrant.bottomRight);  
+            signal(SIGUSR1, signalHandlerChild);
+            pause();
             for(int i = 0; i < 100; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
@@ -206,8 +260,12 @@ void colorImage(int fd, int procCount) {
         exit(0);
     }else{
         int status;
-        waitpid(pid,&status,0);
+        //signal(SIGUSR2, signalHandlerParent);
+        //waitpid(pid,&status,0);
+        return pid;
     }
+
+    return 0;
 }
 
 void fill2DArrayWithColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[]) {
