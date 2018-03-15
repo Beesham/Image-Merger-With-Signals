@@ -17,7 +17,7 @@
 //Prototypes
 
 //Colors the image
-int colorImage(int fd, int procCount); 
+void colorImage(int fd, int procCount); 
 
 //Fills a 2D array with 2 colors
 void fill2DArrayWithColor(int row, int column,  unsigned char array[][column], unsigned char color1[], unsigned char color2[]);
@@ -140,18 +140,29 @@ int main(int argc, char *argv[]) {
       
         
         signal(SIGUSR2, signalHandlerParent);
+        
+        int pid;
+        int proc = 1;
         //Colors the image  
-        for(int i = 0; i < numOfProcesses; i++) {
-            childPids[i] = colorImage(fd, i);
-            printf("Child pid: %d\n", childPids[i]);
+        for(int i = 0; i < maxProc; i++) {//, pid = fork()) {
+            
+            if(proc == 1 && (pid = fork()) == 0) {
+                colorImage(fd, i);
+                proc = proc + i + 1;
+            }else{
+                childPids[i] = pid;
+                printf("Child pid: %d\n", childPids[i]);
+                if(i == maxProc - 1) {
+                    printf("Parent pauseing\n");        
+                    if(pid > 0) pause();
+                    printf("Parent un-pauseing\n");    
+                }
+            }
         }
         
-        printf("Parent pauseing\n");        
-        pause();
-        printf("Parent un-pauseing\n");        
+            
         close(fd);
     }
-    //We can keep the parent alive by pausing in the parent handler
 
 }
 
@@ -167,36 +178,45 @@ void signalHandlerChild(int signo) {
 */
 void signalHandlerParent(int signo) {
     printf("parent signaled!\n");
-    //sleep(1);
+    sleep(1);
+
     int pid = childPids[0];
     printf("sending sig to %d\n", pid);
     kill(pid, SIGUSR1);
-
+    
     int sizeOfArr = sizeof(childPids) / sizeof(int);
     for(int i = 0; i < sizeOfArr; i++) {
-        printf("shifting");
+        printf("shifting\n");
         childPids[i] = childPids[i+1];   
     }
     childPids[sizeOfArr] = '\0';
+    printf("sh: new child at front: %d\n", childPids[0]);
 
-    if(childPids[0] != '\0') {
-        printf("Parent pausing in handler");
-        pause();
-        printf("Parent un-pausingi n handler");
-    }else{
-        perror("Childpids arr empty!");
+    while(childPids[0] != '\0') {
+        sleep(2);
+        kill(childPids[0], SIGUSR1);
     }
+
+    /*if(childPids[0] != '\0') {
+        printf("Parent pausing in handler\n");
+        pause();
+        printf("Parent un-pausingi n handler\n");
+    }else{
+        perror("Childpids arr empty!\n");
+    }*/
+   
 }
 
 /*
     Writes to a file 4 colors in specific orientation. Paints a specific quadrant a specific color 
 */
-int colorImage(int fd, int procCount) {
+void colorImage(int fd, int procCount) {
     int row = 1000;
     int column = 3;
 
-    int pid = fork();
-    if(pid == 0) {
+    printf("ProcCount: %d\n", procCount);
+   // int pid = fork();
+   // if(pid == 0) {
         printf("Parent id: %d\n", getppid());
         unsigned char buff[1000][3] =  {{0}};
         //Writes a number of rows with specific color arrangement based on the process count
@@ -208,20 +228,20 @@ int colorImage(int fd, int procCount) {
             
             kill(getppid(), SIGUSR2);
             
-            printf("Child %d pausing" ,getpid());
+            printf("Child %d pausing\n" ,getpid());
             pause();
-            printf("Child %d unpausing" ,getpid());
+            printf("Child %d unpausing\n" ,getpid());
             //Writes 100 row of 1000px
             for(int i = 0; i < 100; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
-            
+            sleep(1);            
             kill(getppid(), SIGUSR2);
         }else if(procCount == 2) {
             sleep(1);
             fill2DArrayWithColor(row, column, buff, quadrant.topLeft, quadrant.topRight);  
             signal(SIGUSR1, signalHandlerChild);
-            kill(getppid(), SIGUSR2);
+            //kill(getppid(), SIGUSR2);
             printf("Child %d pausing" ,getpid());
             pause();
             for(int i = 0; i < 50; i++) { 
@@ -232,50 +252,55 @@ int colorImage(int fd, int procCount) {
                 fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+            kill(getppid(), SIGUSR2);
         }else if(procCount == 3) { 
             sleep(1);
             signal(SIGUSR1, signalHandlerChild);
-            kill(getppid(), SIGUSR2);
+           // kill(getppid(), SIGUSR2);
             printf("Child %d pausing" ,getpid());
             pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+50);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+            kill(getppid(), SIGUSR2);
         }else if(procCount == 4) { 
             sleep(1);
             signal(SIGUSR1, signalHandlerChild);
-            kill(getppid(), SIGUSR2);
+            //kill(getppid(), SIGUSR2);
             printf("Child %d pausing" ,getpid());
             pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+150);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+            kill(getppid(), SIGUSR2);
         }else if(procCount == 5) { 
             sleep(1);
             signal(SIGUSR1, signalHandlerChild);
-            kill(getppid(), SIGUSR2);
+            //kill(getppid(), SIGUSR2);
             printf("Child %d pausing" ,getpid());
             pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 250-i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+            kill(getppid(), SIGUSR2);
         }else if(procCount == 6) { 
             sleep(1);
             signal(SIGUSR1, signalHandlerChild);
-            kill(getppid(), SIGUSR2);
+            //kill(getppid(), SIGUSR2);
             printf("Child %d pausing" ,getpid());
             pause();
             for(int i = 0; i < 100; i++) { 
                 fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 150-i);  
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+            kill(getppid(), SIGUSR2);
         }else if(procCount == 7) {
             sleep(1);
             signal(SIGUSR1, signalHandlerChild);
-            kill(getppid(), SIGUSR2);
+           // kill(getppid(), SIGUSR2);
             printf("Child %d pausing" ,getpid());
             pause();
             for(int i = 0; i < 50; i++) { 
@@ -288,29 +313,30 @@ int colorImage(int fd, int procCount) {
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
             
+            kill(getppid(), SIGUSR2);
         }else{
             sleep(1);
             fill2DArrayWithColor(row, column, buff, quadrant.bottomLeft, quadrant.bottomRight);  
-            kill(getppid(), SIGUSR2);
+            //kill(getppid(), SIGUSR2);
             signal(SIGUSR1, signalHandlerChild);
             printf("Child %d pausing" ,getpid());
             pause();
             for(int i = 0; i < 100; i++) { 
                 if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
             }
+            kill(getppid(), SIGUSR2);
         }
         
-        //if (procCount == maxProc-1) write(fd, "\n", 1);
+        if (procCount == maxProc-1) write(fd, "\n", 1);
         //exit(0);
-    }else{
+   // }else{
         int status;
         //signal(SIGUSR2, signalHandlerParent);
         //waitpid(pid,&status,0);
-        printf("Returning child pid: %d\n", pid);
-        return pid;
-    }
+       // printf("Returning child pid: %d\n", pid);
+    //    return pid;
+   // }
 
-    return 0;
 }
 
 void fill2DArrayWithColor(int row, int column, unsigned char array[][column], unsigned char color1[], unsigned char color2[]) {
