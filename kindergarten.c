@@ -190,6 +190,7 @@ void signalHandlerParent(int signo) {
         childPids[i] = childPids[i+1];   
     }
     childPids[sizeOfArr] = '\0';
+    printf("processing...\n");
 }
 
 /*
@@ -199,8 +200,6 @@ void colorImage(int fd, int procCount) {
     int row = 1000;
     int column = 3;
 
-    printf("ProcCount: %d\n", procCount);
-    printf("Parent id: %d\n", getppid());
     unsigned char buff[1000][3] =  {{0}};
     //Writes a number of rows with specific color arrangement based on the process count
     if(procCount < 2) {
@@ -232,7 +231,6 @@ void colorImage(int fd, int procCount) {
     }else if(procCount == 3) { 
         sleep(1);
         signal(SIGUSR1, signalHandlerChild);
-        printf("Child %d pausing" ,getpid());
         pause();
         for(int i = 0; i < 100; i++) { 
             fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+50);  
@@ -242,7 +240,6 @@ void colorImage(int fd, int procCount) {
     }else if(procCount == 4) { 
         sleep(1);
         signal(SIGUSR1, signalHandlerChild);
-        printf("Child %d pausing" ,getpid());
         pause();
         for(int i = 0; i < 100; i++) { 
             fillArrayTriColor(row, column, buff, quadrant.topLeft, quadrant.center, quadrant.topRight, i+150);  
@@ -252,7 +249,6 @@ void colorImage(int fd, int procCount) {
     }else if(procCount == 5) { 
         sleep(1);
         signal(SIGUSR1, signalHandlerChild);
-        printf("Child %d pausing" ,getpid());
         pause();
         for(int i = 0; i < 100; i++) { 
             fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 250-i);  
@@ -262,7 +258,6 @@ void colorImage(int fd, int procCount) {
     }else if(procCount == 6) { 
         sleep(1);
         signal(SIGUSR1, signalHandlerChild);
-        printf("Child %d pausing" ,getpid());
         pause();
         for(int i = 0; i < 100; i++) { 
             fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 150-i);  
@@ -272,7 +267,6 @@ void colorImage(int fd, int procCount) {
     }else if(procCount == 7) {
         sleep(1);
         signal(SIGUSR1, signalHandlerChild);
-        printf("Child %d pausing" ,getpid());
         pause();
         for(int i = 0; i < 50; i++) { 
             fillArrayTriColor(row, column, buff, quadrant.bottomLeft, quadrant.center, quadrant.bottomRight, 50 - i);  
@@ -289,7 +283,6 @@ void colorImage(int fd, int procCount) {
         sleep(1);
         fill2DArrayWithColor(row, column, buff, quadrant.bottomLeft, quadrant.bottomRight);  
         signal(SIGUSR1, signalHandlerChild);
-        printf("Child %d pausing" ,getpid());
         pause();
         for(int i = 0; i < 100; i++) { 
             if((write(fd, &buff, sizeof(buff[0][0])*3000)) < 0) write(STDOUT_FILENO, "ERR WRITING", 11);
